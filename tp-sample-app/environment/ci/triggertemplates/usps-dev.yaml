@@ -2,8 +2,8 @@ apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
   labels:
-    app: usps
-  name: usps
+    app: tp-sample-app
+  name:  tp-sample-app
 spec:
   params:
   - description: The git revision
@@ -14,7 +14,7 @@ spec:
   - apiVersion: tekton.dev/v1beta1
     kind: PipelineRun
     metadata:
-      generateName: usps-
+      generateName:  tp-sample-app-
     spec:
       params:
       - name: git-url
@@ -22,4 +22,4 @@ spec:
       - name: git-revision
         value: $(tt.params.gitrevision)
       pipelineRef:
-        name: usps
+        name:  tp-sample-app

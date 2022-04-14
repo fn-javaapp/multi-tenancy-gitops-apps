@@ -8,10 +8,10 @@ metadata:
   name: gitops-repo
 data:
   branch: master
-  host: github.ibm.com
-  org: usps-rapid-entry
-  owner: usps-rapid-entry
+  host: github.com
+  org: tp-sample-app
+  owner: tp-sample-app
   parentdir: .
   protocol: https
   repo: multi-tenancy-gitops-apps
-  url: https://github.ibm.com/usps-rapid-entry/multi-tenancy-gitops-apps.git
+  url: https://github.ibm.com/client-engineering-tp/multi-tenancy-gitops-apps.git

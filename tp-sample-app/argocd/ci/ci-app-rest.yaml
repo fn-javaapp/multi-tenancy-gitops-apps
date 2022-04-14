@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: apps-usps-rest-ci-1
+  name: tp-sample-app-rest-ci-1
   annotations:
     argocd.argoproj.io/sync-wave: "300"
   finalizers:
@@ -12,8 +12,8 @@ spec:
     server: https://kubernetes.default.svc
   project: applications
   source:
-    path: usps-remu/environment/ci
-    repoURL: https://github.ibm.com/usps-rapid-entry/multi-tenancy-gitops-apps.git
+    path: tp-sample-app/environment/ci
+    repoURL: https://github.com/client-engineering-tp/multi-tenancy-gitops-apps.git
     targetRevision: master
   syncPolicy:
     automated:

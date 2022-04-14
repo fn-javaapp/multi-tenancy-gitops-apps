@@ -1,9 +1,9 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: usps-dev
+  name: tp-sample-app-dev
   annotations:
-    app.openshift.io/runtime: usps
+    app.openshift.io/runtime: tp-sample-app
 spec:
   params:
     - name: git-url
@@ -19,7 +19,7 @@ spec:
       default: dev
     - name: app-path
       description: Path in gitops repo
-      default: usps-remu/environment
+      default: tp-sample-app/environment
     - name: security
       description: Enable security for queueManager
       default: "false"
