@@ -1,0 +1,24 @@
+resources:
+- pipelines/nodejs-pipeline.yaml
+- pipelines/usps-pipeline-dev.yaml
+- tasks/0-setup.yaml
+- tasks/1-nodejs-test.yaml
+- tasks/2-build-tag-push.yaml
+- tasks/2-lint-dockerfile.yaml
+- tasks/3-img-scan-ibm.yaml
+- tasks/3-img-scan-trivy.yaml
+#- tasks/4-deploy.yaml
+#- tasks/4-smoke-tests-mq.yaml
+- tasks/4-smoke-tests.yaml
+- tasks/5-health-check.yaml
+- tasks/7-tag-release.yaml
+- tasks/8-image-release.yaml
+- tasks/9-helm-release.yaml
+- tasks/10-gitops.yaml
+- secrets/artifactory-access-secret.yaml
+- secrets/git-credentials-secret.yaml
+- secrets/ibm-entitled-registry-credentials-secret.yaml
+- eventlisteners/cntk-event-listener.yaml
+- configmaps/gitops-repo-configmap.yaml
+- triggerbindings/cntk-binding.yaml
+- triggertemplates/usps-dev.yaml

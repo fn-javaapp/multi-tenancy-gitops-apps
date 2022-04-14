@@ -1,0 +1,3 @@
+global: {}
+usps-remu-pilot:
+  replicaCount: 1

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: multi-tenancy-gitops
+    group: pipeline
+    type: git
+  name: gitops-repo
+data:
+  branch: master
+  host: github.ibm.com
+  org: usps-rapid-entry
+  owner: usps-rapid-entry
+  parentdir: .
+  protocol: https
+  repo: multi-tenancy-gitops-apps
+  url: https://github.ibm.com/usps-rapid-entry/multi-tenancy-gitops-apps.git
