@@ -10,7 +10,7 @@ resources:
 - pipelines/ibm-test-pipeline-for-dev.yaml
 - pipelines/ibm-test-pipeline-for-stage.yaml
 #- pipelines/java-maven-dev-pipeline.yaml
-- pipelines/mq-pipeline-dev.yaml
+- pipelines/tp-sample-app-pipeline-dev.yaml
 - pipelines/mq-spring-app-dev-pipeline.yaml
 - roles/custom-pipeline-sa-clusterrole.yaml
 - roles/custom-pipeline-sa-role.yaml
