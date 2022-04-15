@@ -21,7 +21,7 @@ kind: Secret
 metadata:
   name: git-credentials
   annotations:
-    tekton.dev/git-0: https://github.ibm.com
+    tekton.dev/git-0: https://github.com
 type: kubernetes.io/basic-auth
 stringData:
   username: ${GIT_USER}
