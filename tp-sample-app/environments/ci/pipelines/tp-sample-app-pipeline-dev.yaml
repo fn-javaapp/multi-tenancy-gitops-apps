@@ -96,7 +96,7 @@ spec:
       taskRef:
         name: ibm-tag-release-v2-6-13
       runAfter:
-        - build
+        - smoke-tests
       params:
         - name: git-url
           value: "$(tasks.setup.results.git-url)"
