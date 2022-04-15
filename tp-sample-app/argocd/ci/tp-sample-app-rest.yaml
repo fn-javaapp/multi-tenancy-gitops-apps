@@ -1,12 +1,9 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ci-scc
+  name: tp-sample-app-rest-ci-1
   annotations:
-    argocd.argoproj.io/sync-wave: "250"
-  labels:
-    gitops.tier.group: cntk
-    gitops.tier.layer: applications
+    argocd.argoproj.io/sync-wave: "300"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -15,7 +12,7 @@ spec:
     server: https://kubernetes.default.svc
   project: applications
   source:
-    path: mq/environments/ci/scc
+    path: tp-sample-app/environments/overlays/ci
     repoURL: https://github.com/client-engineering-tp/multi-tenancy-gitops-apps.git
     targetRevision: master
   syncPolicy:

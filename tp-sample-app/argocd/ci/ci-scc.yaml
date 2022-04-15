@@ -15,7 +15,7 @@ spec:
     server: https://kubernetes.default.svc
   project: applications
   source:
-    path: tp-sample-app/environment/ci/scc
+    path: tp-sample-app/environments/overlays/ci/scc
     repoURL: https://github.com/client-engineering-tp/multi-tenancy-gitops-apps.git
     targetRevision: master
   syncPolicy:
