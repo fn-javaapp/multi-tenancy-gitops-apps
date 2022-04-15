@@ -1,25 +1,27 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: ibm-nodejs-test
+  name: ibm-java-maven-test-v2-6-13
   annotations:
-    description: Executes build, test, and sonarscan logic for a NodeJS application
-    app.openshift.io/description: Executes build, test, and sonarscan logic for a NodeJS application
+    description: Executes build, test, and sonarscan logic for a Java maven application
+    app.openshift.io/description: Executes build, test, and sonarscan logic for a Java maven application
     app.openshift.io/vcs-uri: https://github.com/IBM/ibm-garage-tekton-tasks
     app.openshift.io/vcs-ref: master
   labels:
-    version: 0.0.0
+    version: 2.6.13
 spec:
   params:
     - name: git-url
     - name: git-revision
       default: master
-    - name: app-name
-      default: ''
     - name: source-dir
       default: /source
-    - name: js-image
-      default: quay.io/ibmgaragecloud/node:lts-stretch
+    - name: app-name
+      default: "my-java-maven-app"
+    - name: maven-image
+      default: quay.io/ibmgaragecloud/maven:3.6.3-jdk-11-slim
+    - name: sonarqube-java-bin-path
+      default: target
     - name: sonarqube-cli
       default: quay.io/ibmgaragecloud/sonarsource-sonar-scanner-cli
   volumes:
@@ -57,59 +59,22 @@ spec:
         cd $(params.source-dir)
         git checkout $(params.git-revision)
     - name: build
-      image: $(params.js-image)
+      image: $(params.maven-image)
       workingDir: $(params.source-dir)
-      env:
-      - name: npm_config_registry
-        valueFrom:
-          secretKeyRef:
-            name: npm-config
-            key: npm_config_registry
-            optional: true
       script: |
-        npm install
-        if [ -d client ]; then
-          cd client
-          npm install
-          cd -
+        if [[ -f "./mvnw" ]]; then
+          ./mvnw package
+        else
+          mvn package
         fi
-        npm run build --if-present
     - name: test
-      image: $(params.js-image)
+      image: $(params.maven-image)
       workingDir: $(params.source-dir)
       script: |
-        CI=true npm test
-    - name: publish-pact
-      image: $(params.js-image)
-      workingDir: $(params.source-dir)
-      env:
-        - name: PACTBROKER_URL
-          valueFrom:
-            secretKeyRef:
-              name: pactbroker-access
-              key: PACTBROKER_URL
-              optional: true
-      script: |
-        if [ -n "${PACTBROKER_URL}" ]; then
-            npm run pact:publish --if-present
+        if [[ -f "./mvnw" ]]; then
+          ./mvnw test
         else
-            echo "Skipping Pact publish"
-        fi
-    - name: verify-pact
-      image: $(params.js-image)
-      workingDir: $(params.source-dir)
-      env:
-        - name: PACTBROKER_URL
-          valueFrom:
-            secretKeyRef:
-              name: pactbroker-access
-              key: PACTBROKER_URL
-              optional: true
-      script: |
-        if [ -n "${PACTBROKER_URL}" ]; then
-            npm run pact:verify --if-present
-        else
-            echo "Skipping Pact publish"
+          mvn test
         fi
     - name: sonar-scan
       image: $(params.sonarqube-cli)
@@ -136,23 +101,24 @@ spec:
               key: SONARQUBE_PASSWORD
               optional: true
       script: |
-        APP_NAME=$(params.app-name)
+          APP_NAME=$(params.app-name)
+          SONARQUBE_JAVA_BINARIES_PATH="$(params.sonarqube-java-bin-path)"
 
-        if ! command -v sonar-scanner &> /dev/null
-        then
-            echo "Skipping SonarQube step, no task defined"
-            exit 0
-        fi
+          if ! command -v sonar-scanner &> /dev/null
+          then
+              echo "Skipping SonarQube step, no task defined"
+              exit 0
+          fi
 
-        if [ -n "${SONARQUBE_URL}" ]; then
+          if [ -n "${SONARQUBE_URL}" ]; then
 
-           sonar-scanner \
+            sonar-scanner \
             -Dsonar.login=${SONARQUBE_USER} \
             -Dsonar.password=${SONARQUBE_PASSWORD} \
             -Dsonar.host.url=${SONARQUBE_URL} \
-            -Dsonar.projectKey=${APP_NAME}
+            -Dsonar.projectKey=${APP_NAME} \
+            -Dsonar.java.binaries=${SONARQUBE_JAVA_BINARIES_PATH}
 
-        else
-            echo "Skipping Sonar Qube step"
-        fi
-
+          else
+              echo "Skipping Sonar Qube step for now but include"
+          fi

@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: ibm-smoke-tests-usps
+  name: ibm-smoke-tests-mq
   annotations:
     description: Deploys the application to the CI environment for verification using the provided helm chart
     app.openshift.io/description: Deploys the application to the CI environment for verification using the provided helm chart
@@ -27,6 +27,10 @@ spec:
     - name: app-namespace
       default: ""
     - name: app-name
+      default: ""
+    - name : security
+      default: ""
+    - name: ha
       default: ""
     - name: deploy-ingress-type
       default: "route"
@@ -174,7 +178,9 @@ spec:
           helm template ${RELEASE_NAME} ${CHART_PATH} \
               --namespace ${APP_NAMESPACE} \
               --set ${PREFIX}ingress.tlsSecretName="${TLS_SECRET_NAME}" \
-              --set ${PREFIX}ingress.subdomain="${INGRESS_SUBDOMAIN}" > ./release.yaml
+              --set ${PREFIX}ingress.subdomain="${INGRESS_SUBDOMAIN}" \
+              --set security="$(params.security)" \
+              --set ha="$(params.ha)" > ./release.yaml
 
           echo -e "Generated release yaml for: ${APP_NAMESPACE}/${APP_NAME}"
           cat ./release.yaml
@@ -208,6 +214,8 @@ spec:
             fi
             echo -n "${target}" | cut -f1 -d / | tee $(results.resource-type.path)
           done
+      securityContext:
+        privileged: true
     - name: health-check
       image: $(params.tools-image)
       script: |
@@ -217,7 +225,7 @@ spec:
           APP_NAME="$(params.app-name)"
 
           # RELEASE_NAME="${APP_NAME}"
-          RELEASE_NAME="qm-dev"
+          RELEASE_NAME="qm1"
           echo "RELEASE_NAME: $RELEASE_NAME"
 
           podname=$(kubectl get pods --selector=app.kubernetes.io/instance=$RELEASE_NAME -o custom-columns=POD:.metadata.name --no-headers | head -n 1)

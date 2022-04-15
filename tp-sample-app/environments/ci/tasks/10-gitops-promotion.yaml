@@ -1,10 +1,10 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: ibm-gitops
+  name: ibm-gitops-promotion
   annotations:
-    description: Publishes the helm chart configuration to the provided gitops repo to trigger downstream deployments
-    app.openshift.io/description: Publishes the helm chart configuration to the provided gitops repo to trigger downstream deployments
+    description: Promote deliverables across environments
+    app.openshift.io/description: Promote deliverables across environments
     app.openshift.io/vcs-uri: https://github.com/IBM/ibm-garage-tekton-tasks
     app.openshift.io/vcs-ref: master
   labels:
@@ -104,39 +104,35 @@ spec:
       script: |
           #!/usr/bin/env bash
           set -ex
-
           APP_NAME="$(params.app-name)"
-
           SUBDIR="$(params.subdir)"
-
           if [[ -z "${SUBDIR}" ]]; then
             SUBDIR="${APP_NAME}"
           fi
-
           if [[ -n "$(params.parentdir)" ]]; then
             if [[ -n "$(params.src-environment)" ]]; then
-              PARENT_DIR_SRC="$(params.parentdir)/$(params.app-path)/$(params.src-environment)"
+              PARENT_DIR_SRC="$(params.parentdir)/$(params.app-path)/${SUBDIR}/overlays/$(params.src-environment)"
             fi
             if [[ -n "$(params.dest-environment)" ]]; then
-              PARENT_DIR_DEST="$(params.parentdir)/$(params.app-path)/$(params.dest-environment)"
+              PARENT_DIR_DEST="$(params.parentdir)/$(params.app-path)/${SUBDIR}/overlays/$(params.dest-environment)"
             else
               echo "Please set destination environment"
             fi
           elif [[ -n "${GIT_PARENT_DIR}" ]] && [[ "${GIT_PARENT_DIR}" = "bash -c"* ]]; then
             if [[ -n "$(params.src-environment)" ]]; then
-              PARENT_DIR_SRC=$(eval $GIT_PARENT_DIR | tail -n 1)"/$(params.app-path)/$(params.src-environment)"
+              PARENT_DIR_SRC=$(eval $GIT_PARENT_DIR | tail -n 1)"/$(params.app-path)/${SUBDIR}/overlays/$(params.src-environment)"
             fi
             if [[ -n "$(params.dest-environment)" ]]; then
-              PARENT_DIR_DEST=$(eval $GIT_PARENT_DIR | tail -n 1)"/$(params.app-path)/$(params.dest-environment)"
+              PARENT_DIR_DEST=$(eval $GIT_PARENT_DIR | tail -n 1)"/$(params.app-path)/${SUBDIR}/overlays/$(params.dest-environment)"
             else
               echo "Please set destination environment"
             fi
           elif [[ -n "${GIT_PARENT_DIR}" ]]; then
             if [[ -n "$(params.src-environment)" ]]; then
-              PARENT_DIR_SRC="${GIT_PARENT_DIR}/$(params.app-path)/$(params.src-environment)"
+              PARENT_DIR_SRC="${GIT_PARENT_DIR}/$(params.app-path)/${SUBDIR}/overlays/$(params.src-environment)"
             fi
             if [[ -n "$(params.dest-environment)" ]]; then
-              PARENT_DIR_DEST="${GIT_PARENT_DIR}/$(params.app-path)/$(params.dest-environment)"
+              PARENT_DIR_DEST="${GIT_PARENT_DIR}/$(params.app-path)/${SUBDIR}/overlays/$(params.dest-environment)"
             else
               echo "Please set destination environment"
             fi
@@ -150,7 +146,6 @@ spec:
               echo "Please set destination environment"
             fi
           fi
-
           if [[ -n "$(params.src-environment)" ]]; then
             SUBDIR_SRC="${PARENT_DIR_SRC}/${SUBDIR}"
           fi
@@ -159,19 +154,14 @@ spec:
           else
             echo "Please set destination environment"
           fi
-
           PROTOCOL="${GIT_PROTOCOL}"
           if [[ -z "${PROTOCOL}" ]]; then
             PROTOCOL="https"
           fi
-
-          YAML_FILE="$(params.yaml)"
-
           if [[ -z "${GIT_HOST}" ]] || [[ -z "${GIT_ORG}" ]] || [[ -z "${GIT_REPO}" ]]; then
               echo "GitOps repo has not been configured with confimap gitops-repo. Skipping trigger step"
               exit 0
           fi
-
           set +x
           if [[ -n "${GIT_USERNAME}" ]]; then
             GIT_AUTH_USER="${GIT_USERNAME}"
@@ -181,12 +171,10 @@ spec:
             exit 1
           fi
           set -x
-
           BRANCH_CMD=""
           if [[ -n "${GIT_BRANCH}" ]]; then
             BRANCH_CMD="-b ${GIT_BRANCH}"
           fi
-
           git config --global user.email "gitops@cloudnativetoolkit.dev"
           git config --global user.name "Cloud Native Toolkit Pipeline"
           echo "git clone ${BRANCH_CMD} ${PROTOCOL}://${GIT_AUTH_USER}:xxxx@${GIT_HOST}/${GIT_ORG}/${GIT_REPO}"
@@ -196,82 +184,14 @@ spec:
           set -x
           cd gitops_cd
 
-          if [[ -z "$(params.src-environment)" ]]; then
-            VERSION="$(params.version)"
-            HELM_URL="$(params.helm-url)"
-          else
-            VERSION="$(grep 'version:' ./$(params.app-path)/$(params.src-environment)/$(params.app-name)/${YAML_FILE} | awk 'NR==1{print $2}')"
-            HELM_URL="$(grep 'repository:' ./$(params.app-path)/$(params.src-environment)/$(params.app-name)/requirements.yaml | awk 'NR==1{print $2}')"
+          echo ${SUBDIR_SRC}
+          echo ${SUBDIR_DEST}
+
+          if [[ ! -z "${SUBDIR_DEST}" ]]; then
+            rm -rf "${SUBDIR_DEST}/*"
           fi
 
-          if [[ -z "${SUBDIR_SRC}" && -f "${SUBDIR_DEST}/${YAML_FILE}" ]]; then
-            echo "Requirements before update"
-            cat "${SUBDIR_DEST}/${YAML_FILE}"
-
-            yq r "${SUBDIR_DEST}/${YAML_FILE}" -j | \
-              jq --arg APP_NAME "${APP_NAME}" --arg VERSION "${VERSION}" --arg REPO "${HELM_URL}" '.dependencies |= map((select(.name == $APP_NAME) | .version = $VERSION | .repository = $REPO) // .)' | \
-              yq r --prettyPrint - > "${SUBDIR_DEST}/${YAML_FILE}.new"
-
-            rm "${SUBDIR_DEST}/${YAML_FILE}"
-            mv "${SUBDIR_DEST}/${YAML_FILE}.new" "${SUBDIR_DEST}/${YAML_FILE}"
-
-            echo "Requirements after update"
-            cat "${SUBDIR_DEST}/${YAML_FILE}"
-
-          elif [[ ! -z "${SUBDIR_SRC}" && -f "${SUBDIR_DEST}/${YAML_FILE}" ]]; then
-            echo "Requirements before update"
-            cat "${SUBDIR_DEST}/${YAML_FILE}"
-
-            # rm -rf ${SUBDIR_DEST}/${YAML_FILE} && cp -r ${SUBDIR_SRC}/${YAML_FILE} ${SUBDIR_DEST}/${YAML_FILE}
-
-            yq r "${SUBDIR_DEST}/${YAML_FILE}" -j | \
-              jq --arg APP_NAME "${APP_NAME}" --arg VERSION "${VERSION}" --arg REPO "${HELM_URL}" '.dependencies |= map((select(.name == $APP_NAME) | .version = $VERSION | .repository = $REPO) // .)' | \
-              yq r --prettyPrint - > "${SUBDIR_DEST}/${YAML_FILE}.new"
-
-            rm "${SUBDIR_DEST}/${YAML_FILE}"
-            mv "${SUBDIR_DEST}/${YAML_FILE}.new" "${SUBDIR_DEST}/${YAML_FILE}"
-
-            echo "Requirements after update"
-            cat "${SUBDIR_DEST}/${YAML_FILE}"
-
-          elif [[ -n "${HELM_URL}" ]]; then
-            if [[ ! -z ${SUBDIR_DEST} ]]; then
-              files=$(ls ${SUBDIR_DEST} | wc -l)
-              if [[ ${files} -gt 1 && ${files} -lt 3 ]]; then
-                echo "${SUBDIR_DEST} is present but files are not existing"
-                rm -rf ${SUBDIR_DEST}
-              fi
-            fi
-            echo "Creating first time chart using ${SUBDIR_DEST}"
-            # create directory
-            mkdir -p "${SUBDIR_DEST}"
-
-            # WARNING: Do not indent the cat commands below
-
-          cat <<EOF >"${SUBDIR_DEST}/Chart.yaml"
-          apiVersion: v2
-          version: 0.1.0
-          name: ${APP_NAME}
-          description: Chart to configure ArgoCD with the ${APP_NAME} project and its applications
-          EOF
-
-          cat <<EOF >"${SUBDIR_DEST}/${YAML_FILE}"
-          dependencies:
-            - name: ${APP_NAME}
-              version: ${VERSION}
-              repository: ${HELM_URL}
-          EOF
-
-          cat <<EOF >"${SUBDIR_DEST}/values.yaml"
-          global: {}
-          ${APP_NAME}:
-            replicaCount: 1
-          EOF
-
-          else
-            echo "GitOps repo configured but unable to update application config"
-            exit 1
-          fi
+          cp -r "${SUBDIR_SRC}"/*.yaml "${SUBDIR_DEST}"
 
           APP_VERSION="$(git rev-parse HEAD | cut -c 1-8)"
 
@@ -279,7 +199,7 @@ spec:
             echo "No changes"
             exit 0
           elif [[ "$(params.git-pr)" = "false" ]]; then
-            git add "${SUBDIR_DEST}/"
+            git add .
             git commit -m "Updates ${APP_NAME} to ${VERSION}"
             git push -v
           else

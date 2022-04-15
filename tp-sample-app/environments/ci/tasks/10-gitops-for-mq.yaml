@@ -1,10 +1,10 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: ibm-smoke-tests
+  name: ibm-gitops-for-mq
   annotations:
-    description: Deploys the application to the CI environment for verification using the provided helm chart
-    app.openshift.io/description: Deploys the application to the CI environment for verification using the provided helm chart
+    description: Generates MQ artifacts
+    app.openshift.io/description: Generates MQ artifacts
     app.openshift.io/vcs-uri: https://github.com/IBM/ibm-garage-tekton-tasks
     app.openshift.io/vcs-ref: master
   labels:
@@ -24,28 +24,30 @@ spec:
       default: ""
     - name: image-tag
       default: ""
-    - name: app-namespace
-      default: ""
     - name: app-name
       default: ""
-    - name: security
+    - name: app-path
+      default: ""
+    - name: environment
+      default: ""
+    - name : security
+      default: ""
+    - name: ha
       default: ""
     - name: deploy-ingress-type
       default: "route"
     - name: tools-image
       default: quay.io/ibmgaragecloud/ibmcloud-dev:v2.0.4
-    - name: health-protocol
-      default: "https"
-    - name: health-endpoint
-      default: "/health"
-    - name: health-url
+    - name: src-environment
       default: ""
-    - name: health-curl
-      default: "-k"
-    - name: tools-image
-      default: quay.io/ibmgaragecloud/ibmcloud-dev:v2.0.4
-    - name: resource-type
+    - name: dest-environment
       default: ""
+    - name: subdir
+      default: ""
+    - name: parentdir
+      default: ""
+    - name: git-pr
+      default: "false"
   results:
     - name: service-port
     - name: resource-type
@@ -83,7 +85,7 @@ spec:
         set -x
         cd $(params.source-dir)
         git checkout $(params.git-revision)
-    - name: deploy
+    - name: helm-template
       image: $(params.tools-image)
       workingDir: $(params.source-dir)
       env:
@@ -99,23 +101,17 @@ spec:
               name: ibmcloud-config
               key: INGRESS_SUBDOMAIN
               optional: true
-      securityContext:
-        privileged: true
       script: |
           #!/usr/bin/env bash
           set -ex
           GIT_URL="$(params.git-url)"
           GIT_REVISION="$(params.git-revision)"
-          APP_NAMESPACE="$(params.app-namespace)"
           APP_NAME="$(params.app-name)"
-          if [[ -z "${APP_NAME}" ]]; then
-            APP_NAME="$(params.image-repository)"
-          fi
           IMAGE_SERVER="$(params.image-server)"
           IMAGE_NAMESPACE="$(params.image-namespace)"
           IMAGE_REPOSITORY="$(params.image-repository)"
-          IMAGE_VERSION="$(params.image-tag)"
           IMAGE_URL="${IMAGE_SERVER}/${IMAGE_NAMESPACE}/${IMAGE_REPOSITORY}"
+          IMAGE_VERSION="$(params.image-tag)"
           INGRESS_TYPE="$(params.deploy-ingress-type)"
           if [[ "${INGRESS_TYPE}" == "route" ]]; then
             ROUTE_ENABLED="true"
@@ -186,119 +182,148 @@ spec:
 
           helm dep update "${CHART_PATH}"
 
+          mkdir yamls
+
           # Using 'upgrade --install" for rolling updates. Note that subsequent updates will occur in the same namespace the release is currently deployed in, ignoring the explicit--namespace argument".
           helm template ${RELEASE_NAME} ${CHART_PATH} \
-              --namespace ${APP_NAMESPACE} \
-              --set ${PREFIX}ingress.tlsSecretName="${TLS_SECRET_NAME}" \
-              --set ${PREFIX}ingress.subdomain="${INGRESS_SUBDOMAIN}" \
-              --set security="$(params.security)" > ./release.yaml
-
-          echo -e "Generated release yaml for: ${APP_NAMESPACE}/${APP_NAME}"
-          cat ./release.yaml
-
-          echo -e "Deploying into: ${APP_NAMESPACE}/${APP_NAME}"
-          kubectl apply -n ${APP_NAMESPACE} -f ./release.yaml --validate=false > results.out
-          cat results.out
-          echo "Waiting for rollout of ${APP_NAMESPACE}/${APP_NAME}"
-
-
-          cat results.out | \
-            grep -E "deployment|statefulset|integrationserver|queuemanager" | \
-            sed "s/deployment.apps/deployment/g" | \
-            sed "s/statefulset.apps/statefulset/g" | \
-            sed "s/configured//g" | \
-            sed "s/created//g" | \
-            sed "s/unchanged//g" | while read target; do
-            echo "Waiting for rollout of ${target} in ${APP_NAMESPACE}"
-            if [[ ${target} == *"integrationserver"* ]]; then
-              kubectl wait --timeout=-1s --for=condition=Ready ${target}
-            elif [[ ${target} == *"queuemanager"* ]]; then
-              until [[ "$(kubectl get ${target} -o 'jsonpath={.status.phase}')" = "Running" ]];
-              do
-              sleep 5
-              echo "Waiting for Queuemanager to be ready."
-              done
-            else
-              kubectl rollout status -n ${APP_NAMESPACE} ${target}
-              SERVICE_PORT=$(kubectl get svc "${APP_NAME}" -n "${APP_NAMESPACE}" -o jsonpath="{.spec.ports[?(@.name == 'http')].port}")
-              echo -n "${SERVICE_PORT}" | tee $(results.service-port.path)
-            fi
-            echo -n "${target}" | cut -f1 -d / | tee $(results.resource-type.path)
-          done
-    - name: health-check
-      image: $(params.tools-image)
-      script: |
-          #!/usr/bin/env bash
-          set -x
-
-          URL="$(params.health-url)"
-          CURL_FLAGS="$(params.health-curl)"
-
-          if [[ -z "${URL}" ]]; then
-            APP_NAMESPACE="$(params.app-namespace)"
-            APP_NAME="$(params.app-name)"
-            PROTOCOL="$(params.health-protocol)"
-            INGRESS_TYPE="$(params.deploy-ingress-type)"
-            HEALTH_ENDPOINT="$(params.health-endpoint)"
-
-            echo "resource-type: $(params.resource-type)"
-
-            if [[ "$(params.resource-type)" == *"integrationserver"* ]]; then
-                HOST=$(kubectl get route/${APP_NAME}-${PROTOCOL} --namespace ${APP_NAMESPACE} --output=jsonpath='{ .spec.host }')
-                if [[ -z "${PROTOCOL}" ]]; then
-                  PROTOCOL="https"
-                fi
-            elif [[ "${INGRESS_TYPE}" == "route" ]]; then
-                HOST=$(kubectl get route/${APP_NAME} --namespace ${APP_NAMESPACE} --output=jsonpath='{ .spec.host }')
-                if [[ -z "${PROTOCOL}" ]]; then
-                  PROTOCOL="https"
-                fi
-            else
-                HOST=$(kubectl get ingress/${APP_NAME} --namespace ${APP_NAMESPACE} --output=jsonpath='{ .spec.rules[0].host }')
-                if [[ -z "${PROTOCOL}" ]]; then
-                  PROTOCOL="http"
-                fi
-            fi
-
-            URL="${PROTOCOL}://${HOST}${HEALTH_ENDPOINT}"
-
-          fi
-
-          sleep_countdown=5
-          # sleep for 10 seconds to allow enough time for the server to start
-          sleep 10
-          echo "Health check start"
-          while [[ $(curl ${CURL_FLAGS} -sL -w "%{http_code}\\n" "${URL}" -o /dev/null --connect-timeout 3 --max-time 5 --retry 3 --retry-max-time 30) != "200" ]]; do
-              sleep 30
-              echo "Health check failure. Remaining retries: $sleep_countdown"
-              sleep_countdown=$((sleep_countdown-1))
-              if [[ $sleep_countdown -eq 0 ]]; then
-                      echo "Could not reach health endpoint: ${URL}"
-                      exit 1;
-              fi
-          done
-          echo "Successfully reached health endpoint: ${URL}"
-          echo "====================================================================="
-    - name: cleanup
+              --set security="$(params.security)" \
+              --set ha="$(params.ha)" \
+              --output-dir './yamls'
+      securityContext:
+        privileged: true
+    - name: gitops
       image: $(params.tools-image)
       workingDir: $(params.source-dir)
       env:
-        - name: TLS_SECRET_NAME
+        - name: NAMESPACE
           valueFrom:
-            configMapKeyRef:
-              name: ibmcloud-config
-              key: TLS_SECRET_NAME
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: HOME
+          value: /home/devops
+        - name: GIT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: git-credentials
+              key: username
               optional: true
-        - name: INGRESS_SUBDOMAIN
+        - name: GIT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: git-credentials
+              key: password
+              optional: true
+        - name: GIT_PARENT_DIR
           valueFrom:
             configMapKeyRef:
-              name: ibmcloud-config
-              key: INGRESS_SUBDOMAIN
+              name: gitops-repo
+              key: parentdir
+              optional: true
+        - name: GIT_PROTOCOL
+          valueFrom:
+            configMapKeyRef:
+              name: gitops-repo
+              key: protocol
+              optional: true
+        - name: GIT_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: gitops-repo
+              key: host
+              optional: true
+        - name: GIT_ORG
+          valueFrom:
+            configMapKeyRef:
+              name: gitops-repo
+              key: org
+              optional: true
+        - name: GIT_REPO
+          valueFrom:
+            configMapKeyRef:
+              name: gitops-repo
+              key: repo
+              optional: true
+        - name: GIT_BRANCH
+          valueFrom:
+            configMapKeyRef:
+              name: gitops-repo
+              key: branch
               optional: true
       script: |
           #!/usr/bin/env bash
           set -ex
 
-          APP_NAMESPACE="$(params.app-namespace)"
+          APP_NAME="$(params.app-name)"
 
-          kubectl delete -n ${APP_NAMESPACE} -f ./release.yaml
+          SUBDIR="$(params.subdir)"
+
+          if [[ -z "${SUBDIR}" ]]; then
+            SUBDIR="${APP_NAME}"
+          fi
+
+          PROTOCOL="${GIT_PROTOCOL}"
+          if [[ -z "${PROTOCOL}" ]]; then
+            PROTOCOL="https"
+          fi
+
+          if [[ -z "${GIT_HOST}" ]] || [[ -z "${GIT_ORG}" ]] || [[ -z "${GIT_REPO}" ]]; then
+              echo "GitOps repo has not been configured with confimap gitops-repo. Skipping trigger step"
+              exit 0
+          fi
+
+          set +x
+          if [[ -n "${GIT_USERNAME}" ]]; then
+            GIT_AUTH_USER="${GIT_USERNAME}"
+            GIT_AUTH_PWD="${GIT_PASSWORD}"
+          else
+            echo "Credentials for GitOps repo not set in secret gitops-cd-secret or git-credentials"
+            exit 1
+          fi
+          set -x
+
+          BRANCH_CMD=""
+          if [[ -n "${GIT_BRANCH}" ]]; then
+            BRANCH_CMD="-b ${GIT_BRANCH}"
+          fi
+
+          git config --global user.email "gitops@cloudnativetoolkit.dev"
+          git config --global user.name "Cloud Native Toolkit Pipeline"
+          echo "git clone ${BRANCH_CMD} ${PROTOCOL}://${GIT_AUTH_USER}:xxxx@${GIT_HOST}/${GIT_ORG}/${GIT_REPO}"
+          set +x
+          GIT_URL="${PROTOCOL}://${GIT_AUTH_USER}:${GIT_AUTH_PWD}@${GIT_HOST}/${GIT_ORG}/${GIT_REPO}"
+          git clone ${BRANCH_CMD} ${GIT_URL} gitops_cd
+          set -x
+          cd gitops_cd
+
+          SOURCE_DIR="../yamls/${SUBDIR}/templates"
+
+          if [[ ! -z "$(params.app-path)/${SUBDIR}/overlays/$(params.environment)/${SUBDIR}" ]]; then
+            rm -rf "$(params.app-path)/${SUBDIR}/overlays/$(params.environment)/${SUBDIR}/*"
+          fi
+
+          cp -r "$SOURCE_DIR"/*.yaml $(params.app-path)/"${SUBDIR}"/overlays/$(params.environment)/${SUBDIR}
+          cp -r "$SOURCE_DIR"/configmap.yaml $(params.app-path)/"${SUBDIR}"/overlays/$(params.environment)/configmap
+
+          APP_VERSION="$(git rev-parse HEAD | cut -c 1-8)"
+
+          if [[ $(git status -s | wc -l) -eq 0 ]]; then
+            echo "No changes"
+            exit 0
+          elif [[ "$(params.git-pr)" = "false" ]]; then
+            git add .
+            git commit -m "Updates ${APP_NAME} to ${VERSION}"
+            git push -v
+          else
+            git checkout -b cntk-ci-pipeline-${APP_NAME}-${APP_VERSION}
+
+            # push changes to git
+            git status
+            git add "${SUBDIR_DEST}/"
+            git commit -m "Cloudnative toolkit pipeline updates ${APP_NAME}" --no-edit --signoff
+
+            git push origin cntk-ci-pipeline-${APP_NAME}-${APP_VERSION}
+
+            GIT_PUSH_URL="${PROTOCOL}://api.github.com/repos/${GIT_ORG}/${GIT_REPO}/pulls"
+            curl -u ${GIT_AUTH_USER}:${GIT_AUTH_PWD} -d '{"title":"PR to promote to '$(params.dest-environment)' for '$(params.app-name)'","base":"'${GIT_BRANCH}'", "head":"'${GIT_ORG}':cntk-ci-pipeline-'${APP_NAME}'-'${APP_VERSION}'"}' ${GIT_PUSH_URL}
+
+          fi
