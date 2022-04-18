@@ -13,7 +13,7 @@ spec:
     interceptors:
     - cel:
         filter: header.match('X-GitHub-Event', 'push') && body.ref == 'refs/heads/master' && body.repository.full_name == 'client-engineering-tp/tp-sample-app'
-    name: usps
+    name: tp-sample-app
     template:
-      ref: usps
+      ref: tp-sample-app
   
