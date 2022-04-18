@@ -1,5 +1,5 @@
 resources:
  - ../../base
- - dev/tp-sample-app/deployment.yaml
- - dev/tp-sample-app/service.yaml
- - dev/tp-sample-app/route.yaml
+ - tp-sample-app/deployment.yaml
+ - tp-sample-app/service.yaml
+ - tp-sample-app/route.yaml
