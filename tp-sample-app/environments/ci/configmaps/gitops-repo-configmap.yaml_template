@@ -8,7 +8,7 @@ metadata:
   name: gitops-repo
 data:
   branch: ${GIT_BRANCH}
-  host: github.ibm.com
+  host: github.com
   org: ${GIT_ORG}
   owner: ${GIT_ORG}
   parentdir: .

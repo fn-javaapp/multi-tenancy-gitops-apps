@@ -8,7 +8,7 @@ metadata:
   name: gitops-repo
 data:
   branch: master
-  host: github.ibm.com
+  host: github.com
   org: client-engineering-tp
   owner: client-engineering-tp
   parentdir: .
