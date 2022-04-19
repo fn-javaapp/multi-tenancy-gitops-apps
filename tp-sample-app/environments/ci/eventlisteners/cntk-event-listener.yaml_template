@@ -8,13 +8,13 @@ spec:
   serviceAccountName: pipeline
   triggers:
   - name: tp-sample-app-dev
-      interceptors:
-        - ref:
-            name: "cel"
-          params:
-          - name: "filter"
-            value: "header.match('X-GitHub-Event', 'push') && body.ref == 'refs/heads/${GIT_BRANCH_TP}' && body.repository.full_name == '${GIT_ORG}/tp-sample-app'"
-      bindings:
-        - ref: cnkt-trigger-binding
-      template:
-        ref: tp-sample-app-dev
+    interceptors:
+      - ref:
+          name: "cel"
+        params:
+        - name: "filter"
+          value: "header.match('X-GitHub-Event', 'push') && body.ref == 'refs/heads/${GIT_BRANCH_TP}' && body.repository.full_name == '${GIT_ORG}/tp-sample-app'"
+    bindings:
+      - ref: cnkt-trigger-binding
+    template:
+      ref: tp-sample-app-dev
