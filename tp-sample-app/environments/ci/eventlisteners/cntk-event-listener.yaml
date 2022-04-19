@@ -18,4 +18,3 @@ spec:
         - ref: cnkt-trigger-binding
       template:
         ref: tp-sample-app-dev
-  
