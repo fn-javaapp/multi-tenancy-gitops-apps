@@ -5,11 +5,11 @@ kind: Deployment
 metadata:
   name: tp-sample-app
   annotations:
-    app.openshift.io/vcs-ref: b59beb57d984ee21fc0939145ebd6f28e6c0f18a
+    app.openshift.io/vcs-ref: a5c60128443039631d834b2354bce6d0807fa1a5
     app.openshift.io/vcs-uri: https://github.com/client-engineering-tp/tp-sample-app.git
   labels:
     app.kubernetes.io/name: tp-sample-app
-    helm.sh/chart: tp-sample-app-1.0.0-rc0.0.5
+    helm.sh/chart: tp-sample-app-1.0.0-rc0.0.6
     app.kubernetes.io/instance: tp-sample-app
     app: tp-sample-app
     app.openshift.io/runtime: js
@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
         - name: tp-sample-app
-          image: "image-registry.openshift-image-registry.svc:5000/ci/tp-sample-app:0.0.5"
+          image: "image-registry.openshift-image-registry.svc:5000/ci/tp-sample-app:0.0.6"
           imagePullPolicy: IfNotPresent
 
           ports:
