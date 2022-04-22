@@ -32,6 +32,9 @@ spec:
     - name: image-release
       description: External registry
       default: "quay.io/francinenguimdo"  
+    - name: image-server
+      description: External registry
+      default: "quay.io/francinenguimdo"  
   tasks:
     - name: setup
       taskRef:
@@ -44,7 +47,9 @@ spec:
         - name: scan-image
           value: $(params.scan-image)
         - name: image-release
-          value: $(params.image-release)  
+          value: $(params.image-release) 
+        - name: image-server
+          value: $(params.image-server)   
     - name: build
       taskRef:
         name: ibm-build-tag-push-v2-6-13
