@@ -127,8 +127,8 @@ spec:
 
           FILE_NUM=$(find . -name 'Chart*.yaml' |wc -l)
           if [[ "${FILE_NUM}" -gt 1 ]]; then
-            echo "Error: Found >1 Chart*.yaml"
-            exit 1
+          echo "Error: Found >1 Chart*.yaml"
+          exit 1
           fi
 
           export CHART=$(find . -name 'Chart*.yaml')
