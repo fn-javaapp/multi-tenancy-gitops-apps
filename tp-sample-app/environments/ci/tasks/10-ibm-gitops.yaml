@@ -110,7 +110,7 @@ spec:
           IMAGE_SERVER="$(params.image-server)"
           IMAGE_NAMESPACE="$(params.image-namespace)"
           IMAGE_REPOSITORY="$(params.image-repository)"
- #         IMAGE_URL="${IMAGE_SERVER}/${IMAGE_NAMESPACE}/${IMAGE_REPOSITORY}"
+          #IMAGE_URL="${IMAGE_SERVER}/${IMAGE_NAMESPACE}/${IMAGE_REPOSITORY}"
           IMAGE_URL="${IMAGE_SERVER}/${IMAGE_REPOSITORY}" 
           IMAGE_VERSION="$(params.image-tag)"
           INGRESS_TYPE="$(params.deploy-ingress-type)"
@@ -123,7 +123,7 @@ spec:
           fi
 
           export CHART_ROOT=$(find . -name chart)
-           echo "CHART_ROOT: $CHART_ROOT"
+          echo "CHART_ROOT: $CHART_ROOT"
 
           FILE_NUM=$(find . -name 'Chart*.yaml' |wc -l)
           if [[ "${FILE_NUM}" -gt 1 ]]; then
