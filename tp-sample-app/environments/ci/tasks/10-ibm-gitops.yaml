@@ -17,11 +17,11 @@ spec:
     - name: source-dir
       default: /source
     - name: image-server
-      default: ""
+      default: "quay.io"
     - name: image-namespace
       default: ""
     - name: image-repository
-      default: ""
+      default: "tp-sample-app"
     - name: image-tag
       default: ""
     - name: app-name
@@ -110,7 +110,8 @@ spec:
           IMAGE_SERVER="$(params.image-server)"
           IMAGE_NAMESPACE="$(params.image-namespace)"
           IMAGE_REPOSITORY="$(params.image-repository)"
-          IMAGE_URL="${IMAGE_SERVER}/${IMAGE_NAMESPACE}/${IMAGE_REPOSITORY}"
+ #         IMAGE_URL="${IMAGE_SERVER}/${IMAGE_NAMESPACE}/${IMAGE_REPOSITORY}"
+          IMAGE_URL="${IMAGE_SERVER}/${IMAGE_REPOSITORY}" 
           IMAGE_VERSION="$(params.image-tag)"
           INGRESS_TYPE="$(params.deploy-ingress-type)"
           if [[ "${INGRESS_TYPE}" == "route" ]]; then
