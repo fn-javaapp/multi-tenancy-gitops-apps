@@ -23,7 +23,7 @@ spec:
       default: ""
     - name: image-server
       description: The dev image registry server if params.image-url not provided
-      default: ""
+      default: "quay.io"
     - name: image-namespace
       description: The dev image registry namespace if params.image-url not provided
       default: ""
