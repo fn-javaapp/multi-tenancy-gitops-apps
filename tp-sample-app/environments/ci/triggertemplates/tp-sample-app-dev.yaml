@@ -22,4 +22,4 @@ spec:
       - name: git-revision
         value: $(tt.params.gitrevision)
       pipelineRef:
-        name:  tp-sample-app
+        name:  tp-sample-app-dev
