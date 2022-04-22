@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
         - name: tp-sample-app
-          image: "image-registry.openshift-image-registry.svc:5000/ci/tp-sample-app:0.0.11"
+          image: "image-registry.openshift-image-registry.svc:5000/tp-sample-app:0.0.11"
           imagePullPolicy: IfNotPresent
 
           ports:
