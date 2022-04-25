@@ -6,7 +6,7 @@ metadata:
   name: tp-sample-app
   labels:
     app.kubernetes.io/name: tp-sample-app
-    helm.sh/chart: tp-sample-app-1.0.0-rc0.0.17
+    helm.sh/chart: tp-sample-app-1.0.0-rc0.0.18
     app.kubernetes.io/instance: tp-sample-app
     app: tp-sample-app
 spec:
