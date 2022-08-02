@@ -1,2 +1,2 @@
 resources:
-  - tp-sample-app/tp-sample-app-template.yaml
+  - sample-java-app/sample-java-app-template.yaml

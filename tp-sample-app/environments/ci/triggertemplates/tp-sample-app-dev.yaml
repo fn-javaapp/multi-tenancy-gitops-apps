@@ -2,8 +2,8 @@ apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
   labels:
-    app: tp-sample-app
-  name:  tp-sample-app
+    app: sample-java-app
+  name:  sample-java-app
 spec:
   params:
   - description: The git revision
@@ -14,7 +14,7 @@ spec:
   - apiVersion: tekton.dev/v1beta1
     kind: PipelineRun
     metadata:
-      generateName:  tp-sample-app-
+      generateName:  sample-java-app-
     spec:
       params:
       - name: git-url
@@ -22,4 +22,4 @@ spec:
       - name: git-revision
         value: $(tt.params.gitrevision)
       pipelineRef:
-        name:  tp-sample-app-dev
+        name:  sample-java-app-dev

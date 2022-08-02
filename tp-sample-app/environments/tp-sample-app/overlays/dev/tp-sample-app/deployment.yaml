@@ -1,33 +1,33 @@
 ---
-# Source: tp-sample-app/templates/deployment.yaml
+# Source: sample-java-app/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tp-sample-app
+  name: sample-java-app
   annotations:
     app.openshift.io/vcs-ref: 3d3a0ea0fc16465642c7e324f18e103c4ba45baf
-    app.openshift.io/vcs-uri: https://github.com/client-engineering-tp/tp-sample-app
+    app.openshift.io/vcs-uri: https://github.com/fn-javaapp/sample-java-app
   labels:
-    app.kubernetes.io/name: tp-sample-app
-    helm.sh/chart: tp-sample-app-1.0.0-rc0.0.24
-    app.kubernetes.io/instance: tp-sample-app
-    app: tp-sample-app
+    app.kubernetes.io/name: sample-java-app
+    helm.sh/chart: sample-java-app-1.0.0-rc0.0.24
+    app.kubernetes.io/instance: sample-java-app
+    app: sample-java-app
     app.openshift.io/runtime: js
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app.kubernetes.io/name: tp-sample-app
-      app.kubernetes.io/instance: tp-sample-app
+      app.kubernetes.io/name: sample-java-app
+      app.kubernetes.io/instance: sample-java-app
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: tp-sample-app
-        app.kubernetes.io/instance: tp-sample-app
+        app.kubernetes.io/name: sample-java-app
+        app.kubernetes.io/instance: sample-java-app
     spec:
       containers:
-        - name: tp-sample-app
-          image: "quay.io/francinenguimdo/tp-sample-app:0.0.24"
+        - name: sample-java-app
+          image: "quay.io/francinenguimdo/sample-java-app:0.0.24"
           imagePullPolicy: IfNotPresent
 
           ports:

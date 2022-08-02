@@ -1,9 +1,9 @@
 ---
 # Source: mq-infra/templates/qm-template.yaml
 apiVersion: mq.ibm.com/v1beta1
-kind: tp-sample-app
+kind: sample-java-app
 metadata:
-  name: tp-sample-app
+  name: sample-java-app
   annotations:
     argocd.argoproj.io/sync-wave: "300"
     helm.sh/hook-weight: "300"
@@ -13,10 +13,10 @@ spec:
     license: LICENSE VALUE
     use: NonProduction
   queueManager:
-    name: tp-sample-app
+    name: sample-java-app
     mqsc:
     - configMap:
-        name: tp-sample-app-configmap
+        name: sample-java-app-configmap
         items:
         - config.mqsc
   web:

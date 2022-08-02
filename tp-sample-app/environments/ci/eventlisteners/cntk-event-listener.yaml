@@ -7,14 +7,14 @@ metadata:
 spec:
   serviceAccountName: pipeline
   triggers:
-  - name: tp-sample-app-dev
+  - name: sample-java-app-dev
     interceptors:
       - ref:
           name: "cel"
         params:
         - name: "filter"
-          value: "header.match('X-GitHub-Event', 'push') && body.ref == 'refs/heads/master' && body.repository.full_name == 'client-engineering-tp/tp-sample-app'"
+          value: "header.match('X-GitHub-Event', 'push') && body.ref == 'refs/heads/master' && body.repository.full_name == 'fn-javaapp/sample-java-app'"
     bindings:
       - ref: cnkt-trigger-binding
     template:
-      ref: tp-sample-app
+      ref: sample-java-app

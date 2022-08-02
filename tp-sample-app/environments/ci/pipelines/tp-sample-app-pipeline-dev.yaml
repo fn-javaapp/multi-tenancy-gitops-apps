@@ -1,9 +1,9 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: tp-sample-app-dev
+  name: sample-java-app-dev
   annotations:
-    app.openshift.io/runtime: tp-sample-app
+    app.openshift.io/runtime: sample-java-app
 spec:
   params:
     - name: git-url
@@ -19,7 +19,7 @@ spec:
       default: dev
     - name: app-path
       description: Path in gitops repo
-      default: tp-sample-app/environments
+      default: sample-java-app/environments
     - name: security
       description: Enable security for queueManager
       default: "false"
