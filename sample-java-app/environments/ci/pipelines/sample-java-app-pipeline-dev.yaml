@@ -135,7 +135,7 @@ spec:
           value: $(tasks.setup.results.scan-ibm)
     - name: gitops
       taskRef:
-        name: ibm-gitops
+        name: ibm-gitops-for-mq
       runAfter:
         - img-scan
       params:
@@ -145,8 +145,8 @@ spec:
           value: "$(tasks.setup.results.git-revision)"
         - name: source-dir
           value: "$(tasks.setup.results.source-dir)"
-        # - name: image-server
-        #   value: "quay.io/francinenguimdo"
+        - name: image-server
+          value: "$(tasks.setup.results.image-server)"
         - name: image-namespace
           value: "$(tasks.setup.results.image-namespace)"
         - name: image-repository
