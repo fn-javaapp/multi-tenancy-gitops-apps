@@ -133,6 +133,7 @@ spec:
           value: $(tasks.setup.results.scan-trivy)
         - name: scan-ibm
           value: $(tasks.setup.results.scan-ibm)
+
     - name: helm-release
       taskRef:
         name: ibm-helm-release-v2-6-13
@@ -152,7 +153,7 @@ spec:
         - name: deploy-ingress-type
           value: "$(tasks.setup.results.deploy-ingress-type)"
         - name: tools-image
-          value: "$(tasks.setup.results.tools-image)"
+          value: "$(tasks.setup.results.tools-image)"      
     - name: gitops
       taskRef:
         name: ibm-gitops
