@@ -144,9 +144,9 @@ spec:
 
           PREFIX=""
           if [[ -f "${YAML}" ]]; then
-            sed "/image/ s|replace|${IMAGE_URL}:${IMAGE_VERSION}|g" $YAML > $YAML_NEW
+            sed "/image/ s|replace|${IMAGE_URL}:${IMAGE_VERSION}|g" $YAML_NEW > $YAML
             mv ${YAML_NEW} ${YAML}
-            rm ${YAML}
+            rm ${YAML_NEW}
 
           fi
       securityContext:
