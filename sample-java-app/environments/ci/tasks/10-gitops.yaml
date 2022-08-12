@@ -146,7 +146,7 @@ spec:
           if [[ -f "${YAML}" ]]; then
             sed "/image/ s|replace|${IMAGE_URL}:${IMAGE_VERSION}|g" $YAML > $YAML_NEW
             mv ${YAML_NEW} ${YAML}
-            rm ${YAML_NEW}
+            # rm ${YAML_NEW}
 
           fi
       securityContext:
