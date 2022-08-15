@@ -1,5 +1,5 @@
 resources:
  #- ../../base
  - sample-java-app/deployment.yaml
- - sample-java-app/service.yaml
- - sample-java-app/route.yaml
+ #- sample-java-app/service.yaml
+ #- sample-java-app/route.yaml
