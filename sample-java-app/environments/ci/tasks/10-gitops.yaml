@@ -260,7 +260,9 @@ spec:
           if [[ -f "$SOURCE_DIR/queuemanager.yaml" ]]; then
             cp -r "$SOURCE_DIR"/queuemanager.yaml $(params.app-path)/$(params.environment)/${SUBDIR}/queuemanager
           elif [[ -f "$SOURCE_DIR/deployment.yaml" ]]; then
-            cp -r "$SOURCE_DIR"/deployment.yaml $(params.app-path)/$(params.environment)/${SUBDIR}/deployment
+           # cp -r "$SOURCE_DIR"/deployment.yaml $(params.app-path)/$(params.environment)/${SUBDIR}/deployment
+            cp -r "$SOURCE_DIR"/deployment.yaml sample-java-app/environments/sample-java-app/overlays/dev/sample-java-app
+
           elif [[ -f statefulset.yaml ]]; then
             cp -r "$SOURCE_DIR"/statefulset.yaml $(params.app-path)/$(params.environment)/${SUBDIR}/deployment
           else
