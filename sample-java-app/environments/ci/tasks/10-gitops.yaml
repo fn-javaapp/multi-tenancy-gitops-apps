@@ -262,6 +262,8 @@ spec:
           elif [[ -f "$SOURCE_DIR/deployment.yaml" ]]; then
            # cp -r "$SOURCE_DIR"/deployment.yaml $(params.app-path)/$(params.environment)/${SUBDIR}/deployment
             cp -r "$SOURCE_DIR"/deployment.yaml sample-java-app/environments/sample-java-app/overlays/dev/sample-java-app
+            cp -r "$SOURCE_DIR"/service.yaml sample-java-app/environments/sample-java-app/overlays/dev/sample-java-app
+            cp -r "$SOURCE_DIR"/route.yaml sample-java-app/environments/sample-java-app/overlays/dev/sample-java-app
 
           elif [[ -f statefulset.yaml ]]; then
             cp -r "$SOURCE_DIR"/statefulset.yaml $(params.app-path)/$(params.environment)/${SUBDIR}/deployment
