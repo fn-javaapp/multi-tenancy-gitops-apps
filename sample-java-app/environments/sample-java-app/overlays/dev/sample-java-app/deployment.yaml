@@ -17,9 +17,9 @@ spec:
     spec:
       containers:
       - name: sample-java-app
-        image: "image-registry.openshift-image-registry.svc:5000/ci/sample-java-app:0.0.14"
+        image: "image-registry.openshift-image-registry.svc:5000/ci/sample-java-app:0.0.15"
         ports:
-        - containerPort: 9080
+        - containerPort: 8080
         imagePullPolicy: Always
         env:
         - name: CLOUDANT_URL
