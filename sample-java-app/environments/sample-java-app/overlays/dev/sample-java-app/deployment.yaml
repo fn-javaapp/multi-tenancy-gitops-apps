@@ -23,17 +23,17 @@ spec:
       volumes:
       containers:
         - name: sample-java-app
-          image: "image-registry.openshift-image-registry.svc:5000/ci/sample-java-app:0.0.23"
+          image: "image-registry.openshift-image-registry.svc:5000/ci/sample-java-app:0.0.24"
           imagePullPolicy: IfNotPresent
           volumeMounts:
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: 9080
               protocol: TCP
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: 9080
+              port: 8080
               scheme: HTTP
             timeoutSeconds: 10
             periodSeconds: 30
@@ -42,7 +42,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: 9080
+              port: 8080
               scheme: HTTP
             timeoutSeconds: 10
             periodSeconds: 30
