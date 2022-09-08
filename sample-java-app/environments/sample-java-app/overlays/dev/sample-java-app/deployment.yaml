@@ -23,7 +23,7 @@ spec:
       volumes:
       containers:
         - name: sample-java-app
-          image: "image-registry.openshift-image-registry.svc:5000/ci/sample-java-app:0.0.21"
+          image: "image-registry.openshift-image-registry.svc:5000/ci/sample-java-app:0.0.22"
           imagePullPolicy: IfNotPresent
           volumeMounts:
           ports:
@@ -49,11 +49,11 @@ spec:
             successThreshold: 1
             failureThreshold: 3
           env:
-            - name: APP_NAME
-              valueFrom:
-                configMapKeyRef:
-                  key: APP_NAME
-                  name: sample-java-app
+#             - name: APP_NAME
+#               valueFrom:
+#                 configMapKeyRef:
+#                   key: APP_NAME
+#                   name: sample-java-app
             - name: CLOUDANT_URL
               valueFrom:
                 secretKeyRef:
