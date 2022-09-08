@@ -23,7 +23,7 @@ spec:
       volumes:
       containers:
         - name: sample-java-app
-          image: "image-registry.openshift-image-registry.svc:5000/ci/sample-java-app:0.0.28"
+          image: "image-registry.openshift-image-registry.svc:5000/ci/sample-java-app:0.0.29"
           imagePullPolicy: IfNotPresent
           volumeMounts:
           ports:
