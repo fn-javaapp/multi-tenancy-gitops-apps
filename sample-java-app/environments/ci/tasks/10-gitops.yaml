@@ -215,7 +215,9 @@ spec:
             HELM_URL="$(params.helm-url)"
           else
             VERSION="$(grep 'version:' ./$(params.app-path)/$(params.src-environment)/$(params.app-name)/${YAML_FILE} | awk 'NR==1{print $2}')"
-            HELM_URL="$(grep 'repository:' ./$(params.app-path)/$(params.src-environment)/$(params.app-name)/requirements.yaml | awk 'NR==1{print $2}')"
+            #HELM_URL="$(grep 'repository:' ./$(params.app-path)/$(params.src-environment)/$(params.app-name)/requirements.yaml | awk 'NR==1{print $2}')"
+            HELM_URL="$(grep 'repository:' ./tp-sample-app/environments/tp-sample-app/overlays/dev/requirements.yaml | awk 'NR==1{print $2}')"
+
           fi
 
           if [[ -z "${SUBDIR_SRC}" && -f "${SUBDIR_DEST}/${YAML_FILE}" ]]; then
