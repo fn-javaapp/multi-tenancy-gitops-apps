@@ -12,6 +12,7 @@ metadata:
 spec:
   params:
     - name: git-url
+      default: ""
     - name: git-revision
       default: master
     - name: source-dir
