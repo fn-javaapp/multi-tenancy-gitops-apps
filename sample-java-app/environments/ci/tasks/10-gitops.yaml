@@ -11,20 +11,20 @@ metadata:
     version: 0.0.0
 spec:
   params:
-    - name: git-url
-      default: ""
-    - name: git-revision
-      default: ""
-    - name: image-server
-      default: ""
-    - name: mage-namespace 
-      default: ""
-    - name: image-repository
-      default: ""
-    - name: image-tag
-      default: ""
-    - name: environment
-      default: ""  
+#     - name: git-url
+#       default: ""
+#     - name: git-revision
+#       default: ""
+#     - name: image-server
+#       default: ""
+#     - name: mage-namespace 
+#       default: ""
+#     - name: image-repository
+#       default: ""
+#     - name: image-tag
+#       default: ""
+#     - name: environment
+#       default: ""  
     - name: app-name
       default: ""
     - name: version
