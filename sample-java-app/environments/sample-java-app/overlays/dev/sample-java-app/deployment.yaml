@@ -20,11 +20,10 @@ spec:
         app.kubernetes.io/name: sample-java-app
         app.kubernetes.io/instance: sample-java-app
     spec:
-      serviceAccountName: sample-java-app
       volumes:
       containers:
         - name: sample-java-app
-          image: "image-registry.openshift-image-registry.svc:5000/ci/sample-java-app:0.0.20"
+          image: "image-registry.openshift-image-registry.svc:5000/ci/sample-java-app:0.0.21"
           imagePullPolicy: IfNotPresent
           volumeMounts:
           ports:
